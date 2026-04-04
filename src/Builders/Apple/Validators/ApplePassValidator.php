@@ -16,20 +16,20 @@ abstract class ApplePassValidator
             'authenticationToken' => ['nullable', 'string', 'min:16'],
             'teamIdentifier' => ['required', 'string'],
             'logoText' => ['nullable', 'string'],
-            'barcode' => [],
-            'semantics' => [],
-            'primaryFields' => [],
 
-            'foregroundColor' => [],
-            'backgroundColor' => [],
-            'labelColor' => [],
+            'barcodes' => ['nullable', 'array'],
+            'semantics' => ['nullable', 'array'],
 
-            'iconImagePath' => [],
-            'icon@2xImagePath' => [],
-            'icon@3xImagePath' => [],
-            'logoImagePath' => [],
-            'logo@2xImagePath' => [],
-            'logo@3xImagePath' => [],
+            'foregroundColor' => ['nullable', 'string'],
+            'backgroundColor' => ['nullable', 'string'],
+            'labelColor' => ['nullable', 'string'],
+
+            'iconImagePath' => ['nullable', 'string'],
+            'icon@2xImagePath' => ['nullable', 'string'],
+            'icon@3xImagePath' => ['nullable', 'string'],
+            'logoImagePath' => ['nullable', 'string'],
+            'logo@2xImagePath' => ['nullable', 'string'],
+            'logo@3xImagePath' => ['nullable', 'string'],
         ];
     }
 
