@@ -36,6 +36,15 @@ return [
     ],
 
     /*
+    * Read the "Getting credentials from Google" section in the documentation
+    * to learn how to get these values.
+    */
+    'google' => [
+        'service_account_json' => env('GOOGLE_SERVICE_ACCOUNT_JSON'),
+        'issuer_id' => env('GOOGLE_WALLET_ISSUER_ID'),
+    ],
+
+    /*
     * The actions perform core tasks offered by this package. You can customize the behaviour
     * by creating your own action class that extend the one that ships with the package.
     */
