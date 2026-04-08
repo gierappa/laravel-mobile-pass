@@ -40,7 +40,9 @@ return [
     * to learn how to get these values.
     */
     'google' => [
-        'service_account_json' => env('GOOGLE_SERVICE_ACCOUNT_JSON'),
+        'client_id' => env('GOOGLE_WALLET_CLIENT_ID'),
+        'client_email' => env('GOOGLE_WALLET_CLIENT_EMAIL'),
+        'private_key' => env('GOOGLE_WALLET_PRIVATE_KEY'),
         'issuer_id' => env('GOOGLE_WALLET_ISSUER_ID'),
     ],
 

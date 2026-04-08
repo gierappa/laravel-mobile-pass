@@ -114,16 +114,27 @@ abstract class GooglePassBuilder
 
     protected function getServiceCredentials(): ServiceCredentials
     {
-        $credentialsPath = config('mobile-pass.google.service_account_json');
-        if ($credentialsPath && !str_starts_with($credentialsPath, '/')) {
-            $credentialsPath = base_path($credentialsPath);
+        $clientId = config('mobile-pass.google.client_id');
+        $clientEmail = config('mobile-pass.google.client_email');
+        $privateKey = config('mobile-pass.google.private_key');
+
+        if (empty($clientId)) {
+            throw new \RuntimeException('Missing Google Service Client ID in mobile-pass config.');
         }
 
-        if (!$credentialsPath || !file_exists($credentialsPath)) {
-            throw new \RuntimeException("Brak pliku poświadczeń Google Service Account.");
+        if (empty($clientEmail)) {
+            throw new \RuntimeException('Missing Google Service Client Email in mobile-pass config.');
         }
 
-        return ServiceCredentials::parse($credentialsPath);
+        if (empty($privateKey)) {
+            throw new \RuntimeException('Missing Google Service Private Key in mobile-pass config.');
+        }
+
+        return new ServiceCredentials(
+            client_id: $clientId,
+            client_email: $clientEmail,
+            private_key: $privateKey
+        );
     }
 
     protected function getIssuerId(): string
