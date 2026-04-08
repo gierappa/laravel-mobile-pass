@@ -23,6 +23,7 @@ abstract class GooglePassBuilder
     protected ?Image $logoImage = null;
     protected ?Image $iconImage = null;
     protected ?string $hexBackgroundColor = null;
+    protected ?array $validTimeInterval = null;
 
     public function __construct(
         protected array $data = [],
@@ -107,6 +108,15 @@ abstract class GooglePassBuilder
     public function setHexBackgroundColor(string $color): self
     {
         $this->hexBackgroundColor = $color;
+        return $this;
+    }
+
+    public function setValidTimeInterval(\DateTimeInterface $start, \DateTimeInterface $end): self
+    {
+        $this->validTimeInterval = [
+            'start' => $start,
+            'end' => $end,
+        ];
         return $this;
     }
 

@@ -30,19 +30,21 @@ class CouponPassBuilder extends GooglePassBuilder
         $client = GoogleClient::createAuthenticatedClient($credentials);
         $repository = new OfferClassRepository($client);
 
+        $offerClass = new OfferClass(
+            title: $this->description ?? 'Coupon',
+            redemptionChannel: RedemptionChannel::INSTORE,
+            provider: $this->organisationName ?? 'Default Provider',
+            reviewStatus: ReviewStatus::UNDER_REVIEW,
+            id: $classId,
+            issuerName: $this->organisationName ?? 'Default Organisation',
+            localizedDetails: LocalizedString::make('pl', $this->description ?? 'Coupon'),
+            hexBackgroundColor: $this->hexBackgroundColor ?? '#ff0000',
+        );
+
         try {
             $repository->get($classId);
+            $repository->update($offerClass);
         } catch (\Exception $e) {
-            $offerClass = new OfferClass(
-                title: $this->description ?? 'Coupon',
-                redemptionChannel: RedemptionChannel::INSTORE,
-                provider: $this->organisationName ?? 'Default Provider',
-                reviewStatus: ReviewStatus::UNDER_REVIEW,
-                id: $classId,
-                issuerName: $this->organisationName ?? 'Default Organisation',
-                localizedDetails: LocalizedString::make('pl', $this->description ?? 'Coupon'),
-                hexBackgroundColor: $this->hexBackgroundColor ?? '#ff0000',
-            );
             $repository->create($offerClass);
         }
 
@@ -56,8 +58,8 @@ class CouponPassBuilder extends GooglePassBuilder
                 alternateText: $this->serialNumber ?? '000000',
             ),
             validTimeInterval: new TimeInterval(
-                start: new GoogleDateTime(date: now()),
-                end: new GoogleDateTime(date: now()->addMonth())
+                start: new GoogleDateTime(date: $this->validTimeInterval['start'] ?? now()),
+                end: new GoogleDateTime(date: $this->validTimeInterval['end'] ?? now()->addMonth())
             ),
             textModulesData: $this->mapFieldsToTextModules(),
         );
