@@ -39,9 +39,16 @@ class GetAssociatedSerialsForDeviceController extends Controller
             ->max()
             ->toIso8601ZuluString();
 
+        // Return the Apple serial numbers (from pass content), not the internal DB foreign key
+        $serialNumbers = $registrations
+            ->map(fn (AppleMobilePassRegistration $registration) => $registration->pass->serial_number)
+            ->filter()
+            ->values()
+            ->all();
+
         return [
             'lastUpdated' => $lastUpdated,
-            'serialNumbers' => $registrations->pluck('pass_serial')->all(),
+            'serialNumbers' => $serialNumbers,
         ];
     }
 }

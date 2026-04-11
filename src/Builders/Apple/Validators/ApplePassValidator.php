@@ -23,6 +23,7 @@ abstract class ApplePassValidator
             'foregroundColor' => ['nullable', 'string'],
             'backgroundColor' => ['nullable', 'string'],
             'labelColor' => ['nullable', 'string'],
+            'voided' => ['nullable', 'boolean'],
 
             'iconImagePath' => ['nullable', 'string'],
             'icon@2xImagePath' => ['nullable', 'string'],

@@ -4,6 +4,7 @@ namespace Spatie\LaravelMobilePass\Http\Controllers\Apple;
 
 use Illuminate\Http\Request;
 use Illuminate\Routing\Controller;
+use Illuminate\Support\Facades\Log;
 use Spatie\LaravelMobilePass\Actions\Apple\RegisterDeviceAction;
 use Spatie\LaravelMobilePass\Support\Config;
 
@@ -18,12 +19,26 @@ class RegisterDeviceController extends Controller
         /** @var class-string<RegisterDeviceAction> $actionClass */
         $actionClass = Config::getActionClass('register_device', RegisterDeviceAction::class);
 
-        $registration = (new $actionClass)->execute(
-            $request->deviceId,
-            $request->get('pushToken'),
-            $request->passTypeId,
-            $request->passSerial,
-        );
+        Log::debug('Passkit register device', [
+            'deviceId' => $request->route('deviceId'),
+            'passTypeId' => $request->route('passTypeId'),
+            'passSerial' => $request->route('passSerial'),
+            'pushToken' => $request->get('pushToken'),
+        ]);
+
+        try {
+            $registration = (new $actionClass)->execute(
+                $request->route('deviceId'),
+                $request->get('pushToken'),
+                $request->route('passTypeId'),
+                $request->route('passSerial'),
+            );
+        } catch (\Throwable $e) {
+            Log::error('Passkit register device failed', ['error' => $e->getMessage(), 'trace' => $e->getTraceAsString()]);
+            throw $e;
+        }
+
+        Log::debug('Passkit register device success', ['wasRecentlyCreated' => $registration->wasRecentlyCreated]);
 
         return response()
             ->noContent()
