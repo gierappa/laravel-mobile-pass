@@ -21,6 +21,7 @@ use Spatie\LaravelMobilePass\Builders\Apple\BoardingPassBuilder;
 use Spatie\LaravelMobilePass\Builders\Apple\CouponPassBuilder;
 use Spatie\LaravelMobilePass\Builders\Apple\GenericPassBuilder;
 use Spatie\LaravelMobilePass\Builders\Apple\StoreCardPassBuilder;
+use Spatie\LaravelMobilePass\Builders\Google\GooglePassBuilder;
 use Spatie\LaravelMobilePass\Enums\Platform;
 use Spatie\LaravelMobilePass\Exceptions\CannotDownload;
 use Spatie\LaravelMobilePass\Models\Apple\AppleMobilePassRegistration;
@@ -133,6 +134,23 @@ class MobilePass extends Model implements Attachable, Responsable
         $builderClass = Config::getPassBuilderClass($this->builder_name, $this->platform);
 
         return $builderClass::make($this->content, $this->images, $this);
+    }
+
+    public function googleBuilder(): GooglePassBuilder
+    {
+        /** @var class-string<GooglePassBuilder> $builderClass */
+        $builderClass = Config::getPassBuilderClass($this->builder_name, $this->platform);
+
+        return $builderClass::make($this->content, $this->images, $this);
+    }
+
+    public function void(): void
+    {
+        if ($this->platform === Platform::Apple) {
+            $this->builder()->void();
+        } elseif ($this->platform === Platform::Google) {
+            $this->googleBuilder()->void();
+        }
     }
 
     public function generate(): string

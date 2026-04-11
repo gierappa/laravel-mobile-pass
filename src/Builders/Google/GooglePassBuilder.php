@@ -3,6 +3,7 @@
 namespace Spatie\LaravelMobilePass\Builders\Google;
 
 use Chiiya\Passes\Google\Components\Common\TextModuleData;
+use Chiiya\Passes\Google\Enumerators\State;
 use Chiiya\Passes\Google\ServiceCredentials;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
@@ -24,6 +25,7 @@ abstract class GooglePassBuilder
     protected ?Image $iconImage = null;
     protected ?string $hexBackgroundColor = null;
     protected ?array $validTimeInterval = null;
+    protected string $state = State::ACTIVE;
 
     public function __construct(
         protected array $data = [],
@@ -34,6 +36,11 @@ abstract class GooglePassBuilder
         $this->primaryFields = collect();
         $this->secondaryFields = collect();
         $this->auxiliaryFields = collect();
+        $this->serialNumber = $data['serialNumber'] ?? null;
+        $this->organisationName = $data['organisationName'] ?? null;
+        $this->description = $data['description'] ?? null;
+        $this->hexBackgroundColor = $data['hexBackgroundColor'] ?? null;
+        $this->state = $data['state'] ?? State::ACTIVE;
     }
 
     public static function make(array $data = [], array $images = [], ?MobilePass $model = null): static
@@ -51,63 +58,86 @@ abstract class GooglePassBuilder
         return Platform::Google;
     }
 
+    public function setState(string $state): self
+    {
+        $this->state = $state;
+
+        return $this;
+    }
+
+    public function void(): void
+    {
+        $this->setState(State::EXPIRED)->generate();
+        $this->save();
+    }
+
     public function setSerialNumber(string $serialNumber): self
     {
         $this->serialNumber = $serialNumber;
+
         return $this;
     }
 
     public function setOrganisationName(string $organisationName): self
     {
         $this->organisationName = $organisationName;
+
         return $this;
     }
 
     public function setDescription(string $description): self
     {
         $this->description = $description;
+
         return $this;
     }
 
     public function setHeaderFields(FieldContent ...$headerFields): self
     {
         $this->headerFields->push(...$headerFields);
+
         return $this;
     }
 
     public function setPrimaryFields(FieldContent ...$primaryFields): self
     {
         $this->primaryFields->push(...$primaryFields);
+
         return $this;
     }
 
     public function setSecondaryFields(FieldContent ...$secondaryFields): self
     {
         $this->secondaryFields->push(...$secondaryFields);
+
         return $this;
     }
 
     public function setAuxiliaryFields(FieldContent ...$auxiliaryFields): self
     {
         $this->auxiliaryFields->push(...$auxiliaryFields);
+
         return $this;
     }
 
     public function setLogoImage(Image $image): self
     {
         $this->logoImage = $image;
+
         return $this;
     }
 
     public function setIconImage(Image $image): self
     {
         $this->iconImage = $image;
+
         return $this;
     }
 
     public function setHexBackgroundColor(string $color): self
     {
         $this->hexBackgroundColor = $color;
+
         return $this;
     }
 
@@ -117,6 +147,7 @@ abstract class GooglePassBuilder
             'start' => $start,
             'end' => $end,
         ];
+
         return $this;
     }
 
@@ -179,6 +210,7 @@ abstract class GooglePassBuilder
             'organisationName' => $this->organisationName,
             'description' => $this->description,
             'hexBackgroundColor' => $this->hexBackgroundColor,
+            'state' => $this->state,
             'headerFields' => $this->headerFields->map->toArray()->toArray(),
             'primaryFields' => $this->primaryFields->map->toArray()->toArray(),
             'secondaryFields' => $this->secondaryFields->map->toArray()->toArray(),

@@ -15,6 +15,7 @@ use Chiiya\Passes\Google\JWT;
 use Chiiya\Passes\Google\Passes\OfferClass;
 use Chiiya\Passes\Google\Passes\OfferObject;
 use Chiiya\Passes\Google\Repositories\OfferClassRepository;
+use Chiiya\Passes\Google\Repositories\OfferObjectRepository;
 use Illuminate\Support\Str;
 
 class CouponPassBuilder extends GooglePassBuilder
@@ -24,11 +25,12 @@ class CouponPassBuilder extends GooglePassBuilder
         $credentials = $this->getServiceCredentials();
         $issuerId = $this->getIssuerId();
 
-        $classId = "{$issuerId}.coupon-" . Str::slug($this->organisationName ?? 'default');
-        $objectId = "{$issuerId}." . Str::uuid()->toString();
+        $classId = "{$issuerId}.coupon-".Str::slug($this->organisationName ?? 'default');
+        $objectId = "{$issuerId}.".($this->serialNumber ?? Str::uuid()->toString());
 
         $client = GoogleClient::createAuthenticatedClient($credentials);
-        $repository = new OfferClassRepository($client);
+        $classRepository = new OfferClassRepository($client);
+        $objectRepository = new OfferObjectRepository($client);
 
         $offerClass = new OfferClass(
             title: $this->description ?? 'Coupon',
@@ -42,19 +44,19 @@ class CouponPassBuilder extends GooglePassBuilder
         );
 
         try {
-            $repository->get($classId);
-            $repository->update($offerClass);
+            $classRepository->get($classId);
+            $classRepository->update($offerClass);
         } catch (\Exception $e) {
-            $repository->create($offerClass);
+            $classRepository->create($offerClass);
         }
 
         $object = new OfferObject(
             classId: $classId,
             id: $objectId,
-            state: State::ACTIVE,
+            state: $this->state,
             barcode: new GoogleBarcode(
                 type: GoogleBarcodeType::QR_CODE,
-                value: 'https://retiva.io/pass/' . ($this->serialNumber ?? '000000'),
+                value: 'https://retiva.io/pass/'.($this->serialNumber ?? '000000'),
                 alternateText: $this->serialNumber ?? '000000',
             ),
             validTimeInterval: new TimeInterval(
@@ -63,6 +65,13 @@ class CouponPassBuilder extends GooglePassBuilder
             ),
             textModulesData: $this->mapFieldsToTextModules(),
         );
+
+        try {
+            $objectRepository->get($objectId);
+            $objectRepository->update($object);
+        } catch (\Exception $e) {
+            $objectRepository->create($object);
+        }
 
         return (new JWT(
             iss: $credentials->client_email,

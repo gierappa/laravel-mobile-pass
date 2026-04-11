@@ -61,6 +61,8 @@ abstract class ApplePassBuilder
 
     protected ?string $downloadName = null;
 
+    protected bool $voided = false;
+
     abstract protected static function validator(): ApplePassValidator;
 
     public static function make(array $data = [], array $images = [], ?MobilePass $model = null): static
@@ -87,6 +89,18 @@ abstract class ApplePassBuilder
         $this->downloadName = $model?->download_name;
 
         $this->uncompileContent();
+    }
+
+    public function setVoided(bool $voided = true): self
+    {
+        $this->voided = $voided;
+
+        return $this;
+    }
+
+    public function void(): void
+    {
+        $this->setVoided(true)->save();
     }
 
     public function setDownloadName(string $downloadName): self
@@ -361,6 +375,7 @@ abstract class ApplePassBuilder
             'backgroundColor' => (string) $this->backgroundColour,
             'foregroundColor' => (string) $this->foregroundColour,
             'labelColor' => (string) $this->labelColour,
+            'voided' => $this->voided ?: null,
             'userInfo' => [
                 'passType' => $this->type->value,
             ],
@@ -385,6 +400,7 @@ abstract class ApplePassBuilder
         $this->backgroundColour = Colour::makeFromRgbString($this->data['backgroundColor'] ?? null);
         $this->foregroundColour = Colour::makeFromRgbString($this->data['foregroundColor'] ?? null);
         $this->labelColour = Colour::makeFromRgbString($this->data['labelColor'] ?? null);
+        $this->voided = (bool) ($this->data['voided'] ?? false);
 
         $this->uncompileSemantics();
         // $model->passImages = array_map(fn ($image) => Image::fromArray($image), $model->images);
