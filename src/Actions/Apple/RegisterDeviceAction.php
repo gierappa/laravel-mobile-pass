@@ -30,7 +30,9 @@ class RegisterDeviceAction
     {
         $mobilePassModel = Config::mobilePassModel();
 
-        return $mobilePassModel::query()->findOrFail($passSerial);
+        return $mobilePassModel::query()
+            ->where('content->serialNumber', $passSerial)
+            ->firstOrFail();
     }
 
     protected function device(string $deviceId, string $pushToken): AppleMobilePassDevice
