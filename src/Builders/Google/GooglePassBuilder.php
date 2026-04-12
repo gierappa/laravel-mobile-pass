@@ -219,6 +219,7 @@ abstract class GooglePassBuilder
 
         if ($this->model) {
             $this->model->update([
+                'serial_number' => $this->serialNumber,
                 'content' => $content,
                 'images' => $this->images,
             ]);
@@ -227,6 +228,7 @@ abstract class GooglePassBuilder
         }
 
         return MobilePass::query()->create([
+            'serial_number' => $this->serialNumber,
             'type' => 'coupon', // Tymczasowo na sztywno, bo Google ma inne typy niż Apple
             'platform' => static::platform(),
             'builder_name' => static::name(),

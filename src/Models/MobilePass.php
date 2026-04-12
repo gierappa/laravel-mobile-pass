@@ -49,6 +49,10 @@ class MobilePass extends Model implements Attachable, Responsable
         parent::boot();
 
         static::updated(function (MobilePass $mobilePass) {
+            if ($mobilePass->platform !== Platform::Apple) {
+                return;
+            }
+
             /** @var class-string<NotifyAppleOfPassUpdateAction> $action */
             $action = Config::getActionClass('notify_apple_of_pass_update', NotifyAppleOfPassUpdateAction::class);
 
