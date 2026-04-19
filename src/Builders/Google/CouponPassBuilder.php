@@ -41,6 +41,7 @@ class CouponPassBuilder extends GooglePassBuilder
             issuerName: $this->organisationName ?? 'Default Organisation',
             localizedDetails: LocalizedString::make('pl', $this->description ?? 'Coupon'),
             hexBackgroundColor: $this->hexBackgroundColor ?? '#ff0000',
+            locations: $this->locations,
         );
 
         try {
@@ -64,6 +65,7 @@ class CouponPassBuilder extends GooglePassBuilder
                 end: new GoogleDateTime(date: $this->validTimeInterval['end'] ?? now()->addMonth())
             ),
             textModulesData: $this->mapFieldsToTextModules(),
+            locations: $this->locations,
         );
 
         try {

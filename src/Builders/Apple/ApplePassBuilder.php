@@ -9,6 +9,7 @@ use PKPass\PKPass;
 use Spatie\LaravelMobilePass\Builders\Apple\Entities\Colour;
 use Spatie\LaravelMobilePass\Builders\Apple\Entities\FieldContent;
 use Spatie\LaravelMobilePass\Builders\Apple\Entities\Image;
+use Spatie\LaravelMobilePass\Builders\Apple\Entities\Location;
 use Spatie\LaravelMobilePass\Builders\Apple\Entities\Price;
 use Spatie\LaravelMobilePass\Builders\Apple\Entities\WifiNetwork;
 use Spatie\LaravelMobilePass\Builders\Apple\Validators\ApplePassValidator;
@@ -62,6 +63,11 @@ abstract class ApplePassBuilder
     protected ?string $downloadName = null;
 
     protected bool $voided = false;
+
+    /** @var Location[] */
+    protected array $locations = [];
+
+    protected ?int $maxDistance = null;
 
     abstract protected static function validator(): ApplePassValidator;
 
@@ -241,6 +247,20 @@ abstract class ApplePassBuilder
         return $this;
     }
 
+    public function setLocations(Location ...$locations): self
+    {
+        $this->locations = $locations;
+
+        return $this;
+    }
+
+    public function setMaxDistance(int $meters): self
+    {
+        $this->maxDistance = $meters;
+
+        return $this;
+    }
+
     protected function addImagesToFile(PKPass $pkPass): PKPass
     {
         foreach ($this->images as $filename => $image) {
@@ -340,6 +360,16 @@ abstract class ApplePassBuilder
         // The icon image is always required.
         // TODO: validate this.
 
+        // Inject locations and maxDistance after validation because the
+        // validator only allows defined rules and would otherwise strip them.
+        if (! empty($this->locations)) {
+            $data['locations'] = array_map(fn (Location $l) => $l->toArray(), $this->locations);
+        }
+
+        if ($this->maxDistance !== null) {
+            $data['maxDistance'] = $this->maxDistance;
+        }
+
         return $data;
     }
 
@@ -406,6 +436,11 @@ abstract class ApplePassBuilder
         $this->foregroundColour = Colour::makeFromRgbString($this->data['foregroundColor'] ?? null);
         $this->labelColour = Colour::makeFromRgbString($this->data['labelColor'] ?? null);
         $this->voided = (bool) ($this->data['voided'] ?? false);
+        $this->locations = array_map(
+            fn (array $l) => Location::fromArray($l),
+            $this->data['locations'] ?? []
+        );
+        $this->maxDistance = isset($this->data['maxDistance']) ? (int) $this->data['maxDistance'] : null;
 
         $this->uncompileSemantics();
         // $model->passImages = array_map(fn ($image) => Image::fromArray($image), $model->images);

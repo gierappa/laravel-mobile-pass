@@ -2,6 +2,7 @@
 
 namespace Spatie\LaravelMobilePass\Builders\Google;
 
+use Chiiya\Passes\Google\Components\Common\LatLongPoint;
 use Chiiya\Passes\Google\Components\Common\TextModuleData;
 use Chiiya\Passes\Google\Enumerators\State;
 use Chiiya\Passes\Google\ServiceCredentials;
@@ -27,6 +28,9 @@ abstract class GooglePassBuilder
     protected ?array $validTimeInterval = null;
     protected string $state = State::ACTIVE;
 
+    /** @var LatLongPoint[] */
+    protected array $locations = [];
+
     public function __construct(
         protected array $data = [],
         protected array $images = [],
@@ -41,6 +45,10 @@ abstract class GooglePassBuilder
         $this->description = $data['description'] ?? null;
         $this->hexBackgroundColor = $data['hexBackgroundColor'] ?? null;
         $this->state = $data['state'] ?? State::ACTIVE;
+        $this->locations = array_map(
+            fn (array $l) => new LatLongPoint(latitude: $l['latitude'], longitude: $l['longitude']),
+            $data['locations'] ?? []
+        );
     }
 
     public static function make(array $data = [], array $images = [], ?MobilePass $model = null): static
@@ -151,6 +159,19 @@ abstract class GooglePassBuilder
         return $this;
     }
 
+    /**
+     * @param  array<int, array{latitude: float, longitude: float}>  $locations
+     */
+    public function setLocations(array $locations): self
+    {
+        $this->locations = array_map(
+            fn (array $l) => new LatLongPoint(latitude: $l['latitude'], longitude: $l['longitude']),
+            $locations,
+        );
+
+        return $this;
+    }
+
     abstract public function generate(): string;
 
     protected function getServiceCredentials(): ServiceCredentials
@@ -205,7 +226,7 @@ abstract class GooglePassBuilder
 
     public function save(): MobilePass
     {
-        $content = [
+        $content = array_filter([
             'serialNumber' => $this->serialNumber,
             'organisationName' => $this->organisationName,
             'description' => $this->description,
@@ -215,7 +236,10 @@ abstract class GooglePassBuilder
             'primaryFields' => $this->primaryFields->map->toArray()->toArray(),
             'secondaryFields' => $this->secondaryFields->map->toArray()->toArray(),
             'auxiliaryFields' => $this->auxiliaryFields->map->toArray()->toArray(),
-        ];
+            'locations' => ! empty($this->locations)
+                ? array_map(fn (LatLongPoint $p) => ['latitude' => $p->latitude, 'longitude' => $p->longitude], $this->locations)
+                : null,
+        ], fn ($v) => $v !== null);
 
         if ($this->model) {
             $this->model->update([
