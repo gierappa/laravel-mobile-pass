@@ -19,9 +19,7 @@ class RegisterDeviceAction
 
         $device = $this->device($deviceId, $pushToken);
 
-        $registrationProperties = $this->registrationProperties(
-            $device, $passTypeId, $passSerial
-        );
+        $registrationProperties = $this->registrationProperties($device, $passTypeId);
 
         return $pass->registrations()->firstOrCreate($registrationProperties);
     }
@@ -45,12 +43,11 @@ class RegisterDeviceAction
         );
     }
 
-    protected function registrationProperties(AppleMobilePassDevice $device, string $passTypeId, string $passSerial): array
+    protected function registrationProperties(AppleMobilePassDevice $device, string $passTypeId): array
     {
         return [
             'device_id' => $device->getKey(),
             'pass_type_id' => $passTypeId,
-            'pass_serial' => $passSerial,
         ];
     }
 }
